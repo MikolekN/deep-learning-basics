@@ -1,6 +1,9 @@
 import os
 
 
+# --- DEBUGGING --- #
+DEBUG = False
+
 # --- DATA DIRECTORIES --- #
 
 # Main data directory
@@ -27,5 +30,5 @@ TRAINING_DATA_SECONDARY_DIR = os.path.join(_DATA_DIR, _TESTING_DATA_DIR, "our")
 IMG_SIZE = (128, 128)
 
 # Batch of images to be processes at the same time
-BATCH_SIZE = 32
+IMG_BATCH_SIZE = 32
 

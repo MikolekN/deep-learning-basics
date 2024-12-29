@@ -1,4 +1,4 @@
-classes = [
+class_names = [
     'A-1',
     'A-2',
     'A-3',
@@ -51,12 +51,12 @@ classes = [
     'D-43'
 ]
 
-class_to_number = {cls: idx for idx, cls in enumerate(classes)}
+class_to_number = {cls: idx for idx, cls in enumerate(class_names)}
 
 number_to_class = {idx: cls for cls, idx in class_to_number.items()}
 
 if __name__ == "__main__":
     print("CLASSES NAMES TO NUMBERS MAP")
     print("Classes:")
-    for c in classes:
+    for c in class_names:
         print(f"\t- '{c}' with number {class_to_number[c]}")
