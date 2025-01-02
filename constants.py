@@ -32,3 +32,5 @@ IMG_SIZE = (128, 128)
 # Batch of images to be processes at the same time
 IMG_BATCH_SIZE = 32
 
+# TODO
+IMG_CHANNEL_NUMBER = 3
