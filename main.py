@@ -1,99 +1,47 @@
-import keras
-import numpy as np
-from keras import Sequential
-from keras.src.layers import Conv2D, MaxPooling2D, Flatten, Dense, BatchNormalization, Dropout
-from keras.src.legacy import layers
-from keras.src.optimizers import Adam
-from tensorflow import data as tf_data
-
-from augment_data import augment_train_data
-from class_to_number import class_names
-from constants import IMG_SIZE, IMG_CHANNEL_NUMBER
-from describe_data import describe_data
-from load_dataset import load_dataset_from_images
 import matplotlib.pyplot as plt
-train_ds, val_ds = load_dataset_from_images()
+import numpy as np
+import tensorflow as tf
 
-train_ds = train_ds.prefetch(tf_data.AUTOTUNE)
-val_ds = val_ds.prefetch(tf_data.AUTOTUNE)
+from class_to_number import class_names
+from load_dataset import load_dataset
+from model import create_model, train_model, save_model, predict_image
 
-describe_data(train_ds, val_ds)
+print("TensorFlow version:", tf.__version__)
 
-# MODEL
-# basic = Sequential(
-#     layers=[
-#         Conv2D(
-#             filters=32, #
-#             kernel_size=(5, 5), #
-#             input_shape=(IMG_SIZE[0], IMG_SIZE[1], IMG_CHANNEL_NUMBER), #
-#             activation='relu' #
-#         ),
-#         BatchNormalization(),
-#         MaxPooling2D(
-#             pool_size=(2, 2)
-#         ),
-#         Conv2D(64, (3, 3), activation='relu'),
-#         BatchNormalization(),
-#         MaxPooling2D(pool_size=(2, 2)),
-#         Conv2D(128, (3, 3), activation='relu'),
-#         BatchNormalization(),
-#         MaxPooling2D(pool_size=(2, 2)),
-#         Flatten(),
-#         Dense(256, activation='relu'),
-#         Dense(len(class_names), activation='softmax')
-#     ],
-#     trainable=True,
-#     name=None
-# )
-# basic.compile(
-#     optimizer=Adam(learning_rate=0.1),
-#     loss='sparse_categorical_crossentropy',
-#     metrics=['accuracy']
-# )
-# basic.summary()
+physical_devices = tf.config.list_physical_devices('GPU')
+if physical_devices:
+    print(f"GPUs available: {physical_devices}")
+else:
+    print("No GPU detected. TensorFlow will run on CPU.")
 
-final = Sequential([
-    Conv2D(60, (5, 5), input_shape=(IMG_SIZE[0], IMG_SIZE[1], IMG_CHANNEL_NUMBER), activation='relu'),
-    Conv2D(60, (5, 5), activation='relu'),
-    MaxPooling2D(pool_size=(2, 2)),
+if physical_devices:
+    tf.config.set_visible_devices(physical_devices[0], 'GPU')  # Use the first GPU
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-    Conv2D(30, (3, 3), activation='relu'),
-    Conv2D(30, (3, 3), activation='relu'),
-    MaxPooling2D(pool_size=(2, 2)),
+train_ds, val_ds = load_dataset()
+model = create_model()
+history = train_model(model, train_ds, val_ds)
+save_model(model)
+prediction = predict_image(model, "data/testing/our/A-3/A-3.jpg")
+print(f"Prediction: {prediction}")
+predicted_class = np.argmax(prediction, axis=1)
+print(f"Predicted class: {predicted_class[0]}")
+predicted_class_label = class_names[predicted_class[0]]
+print(f"Predicted class label: {predicted_class_label}")
 
-    Flatten(),
-    Dense(500, activation='relu'),
-    Dropout(0.5),
-    Dense(len(class_names), activation='softmax')
-])
-final.compile(Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-final.summary()
-
-EPOCHS = 3
-BATCH_SIZE = 32
-
-history = final.fit(
-    train_ds,
-    steps_per_epoch=int(np.ceil(len(list(train_ds)) / 10)),
-    epochs=10,
-    validation_data=val_ds,
-    validation_steps=int(np.ceil(len(list(val_ds)) / 10)),
-    verbose=1
-)
-
-plt.plot(history.history['accuracy'], label='Train Accuracy')
-plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend()
-plt.title('Model Accuracy')
-plt.show()
-
-# Plot loss
-plt.plot(history.history['loss'], label='Train Loss')
-plt.plot(history.history['val_loss'], label='Validation Loss')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-plt.title('Model Loss')
-plt.show()
+# plt.plot(history.history['accuracy'], label='Train Accuracy')
+# plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+# plt.xlabel('Epoch')
+# plt.ylabel('Accuracy')
+# plt.legend()
+# plt.title('Model Accuracy')
+# plt.show()
+#
+# # Plot loss
+# plt.plot(history.history['loss'], label='Train Loss')
+# plt.plot(history.history['val_loss'], label='Validation Loss')
+# plt.xlabel('Epoch')
+# plt.ylabel('Loss')
+# plt.legend()
+# plt.title('Model Loss')
+# plt.show()
