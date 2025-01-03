@@ -21,6 +21,7 @@ def _describe_dataset(dataset_name, element_spec):
         else:
             print(f"  Element {i + 1}: Unknown type or structure")
 
+
 def describe_data(train_ds, val_ds):
     if DEBUG:
         _describe_dataset("Train dataset", train_ds.element_spec)
