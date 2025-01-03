@@ -29,5 +29,6 @@ def build_model(config, input_shape, num_classes):
     model.compile(optimizer=Adam(learning_rate=config['learning_rate']),
                   loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
+    model.summary()
 
     return model

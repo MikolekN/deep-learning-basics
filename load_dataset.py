@@ -2,12 +2,13 @@
 
 import keras
 import matplotlib.pyplot as plt
-
+from tensorflow import data as tf_data
 from class_to_number import class_names
 from constants import TRAINING_DATA_DIR, IMG_BATCH_SIZE, IMG_SIZE, DEBUG
+from describe_data import describe_data
 
 
-def load_dataset_from_images():
+def _load_dataset_from_images():
     train_ds, val_ds = keras.utils.image_dataset_from_directory(
         directory=TRAINING_DATA_DIR,
         labels="inferred", # labels are generated from the directory structure
@@ -40,5 +41,16 @@ def load_dataset_from_images():
                 plt.title(class_names[labels[i].numpy()])
                 plt.axis("off")
             plt.show()
+
+    return train_ds, val_ds
+
+
+def load_dataset():
+    train_ds, val_ds = _load_dataset_from_images()
+
+    train_ds = train_ds.prefetch(tf_data.AUTOTUNE)
+    val_ds = val_ds.prefetch(tf_data.AUTOTUNE)
+
+    describe_data(train_ds, val_ds)
 
     return train_ds, val_ds
