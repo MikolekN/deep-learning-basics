@@ -40,9 +40,8 @@ SAVED_MODEL_IDS = "model_id.txt"
 
 # --- TRAINING PARAMETERS --- #
 
-EPOCHS = 5
-BATCH_SIZE = 64
-
+BATCH_SIZE = 32
+EPOCHS = 3
 
 # --- IMAGE PARAMETERS --- #
 
@@ -51,8 +50,6 @@ IMG_SIZE = (128, 128)
 
 # Batch of images to be processes at the same time
 IMG_BATCH_SIZE = 32
-BATCH_SIZE = 32
-EPOCHS = 3
 
 ImageShape = namedtuple("ImageShape", ["height", "width", "channels"])
 
