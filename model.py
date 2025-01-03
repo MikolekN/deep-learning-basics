@@ -45,6 +45,7 @@ def create_model(input_shape, num_classes, config=None):
 
     return model
 
+
 def train_model(model, train_ds, val_ds):
     history = model.fit(
         x=train_ds,
@@ -97,12 +98,12 @@ def save_model(model):
 
 
 def load_model_from_name(model_name: str):
-    _load_model(model_name)
+    return _load_model(model_name)
 
 
 def load_model_from_timestamp(timestamp: datetime):
     model_name = assemble_model_name(timestamp)
-    _load_model(model_name)
+    return _load_model(model_name)
 
 
 def _load_model(model_file_name: str):

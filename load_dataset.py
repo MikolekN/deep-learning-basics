@@ -4,7 +4,7 @@ import keras
 import matplotlib.pyplot as plt
 from tensorflow import data as tf_data
 from class_to_number import class_names
-from constants import TRAINING_DATA_DIR, IMG_BATCH_SIZE, IMG_SIZE, DEBUG
+from constants import TRAINING_DATA_DIR, IMG_BATCH_SIZE, IMG_SIZE, DEBUG, TEST_DATA_DIR
 from describe_data import describe_data
 
 
@@ -45,7 +45,7 @@ def _load_dataset_from_images():
     return train_ds, val_ds
 
 
-def load_dataset():
+def load_training_dataset():
     train_ds, val_ds = _load_dataset_from_images()
 
     train_ds = train_ds.prefetch(tf_data.AUTOTUNE)
@@ -54,3 +54,15 @@ def load_dataset():
     describe_data(train_ds, val_ds)
 
     return train_ds, val_ds
+
+def load_testing_dataset():
+    return keras.utils.image_dataset_from_directory(
+        directory=TEST_DATA_DIR,
+        labels="inferred",
+        label_mode="int",
+        class_names=class_names,
+        color_mode="rgb",
+        batch_size=IMG_BATCH_SIZE,
+        image_size=IMG_SIZE,
+        shuffle=False
+    )
