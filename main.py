@@ -1,3 +1,5 @@
+import os.path
+
 import keras
 import numpy as np
 from keras import Sequential, Input
@@ -121,12 +123,14 @@ history = model.fit( # w przykładach jest rozbicie na x i y, wywala error Conne
     verbose=1,
     callbacks=[  #  rozwazyc dodanie EarlyStopping
         WandbMetricsLogger(log_freq=1),
-        WandbModelCheckpoint(filepath="checkpoints/checkpoint_" + create_checkpoint_name() + "_{epoch:02d}.keras",
+        WandbModelCheckpoint(filepath=os.path.join("checkpoints", create_checkpoint_name(), "checkpoint_{epoch:02d}.keras"),
                              save_freq="epoch")
     ]
 )
 
 model.save(f'best_models/{create_model_name()}.keras')
+
+wandb.finish(exit_code=0)
 
 # final = Sequential([
 #     Conv2D(60, (5, 5), input_shape=(IMG_SIZE[0], IMG_SIZE[1], IMG_CHANNEL_NUMBER), activation='relu'),
@@ -144,7 +148,7 @@ model.save(f'best_models/{create_model_name()}.keras')
 # ])
 # final.compile(Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 # final.summary()
-
+#
 # history = final.fit(
 #     train_ds,
 #     steps_per_epoch=int(np.ceil(len(list(train_ds)) / 10)),
