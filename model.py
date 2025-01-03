@@ -11,38 +11,25 @@ from keras.src.utils import load_img, img_to_array
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
-from constants import SAVED_MODEL_IDS, SAVED_MODEL_DIR, EPOCHS, BATCH_SIZE
+from constants import SAVED_MODEL_DIR, EPOCHS, BATCH_SIZE
 from utils import create_run_name, create_checkpoint_name, create_model_name
 
-config = {
-    'filters': 60,                    # Number of filters for the first layer
-    'kernel_1': (5, 5),               # Kernel size for the first set of Conv2D layers
-    'kernel_2': (3, 3),               # Kernel size for the second set of Conv2D layers
-    'padding': 'valid',               # Padding type
-    'activation': 'relu',             # Activation function
-    'pooling': (2, 2),                # Pooling size for MaxPooling2D
-    'dropout': 0.5,                   # Dropout rate for intermediate layers
-    'dropout_f': 0.5,                 # Dropout rate for fully connected layers
-    'dense_units': 500,               # Number of units in the dense layer
-    'learning_rate': 0.001            # Learning rate for the Adam optimizer
-}
-
 hyperparams = dict(
-    filters=60,
-    kernel_1=(5, 5),
-    kernel_2=(3, 3),
-    padding='valid',
-    pooling=(2, 2),
-    learning_rate=0.001,
-    wd=0.0,
-    learning_rate_schedule='RLR',    # cos, cyclic, step decay
-    optimizer='adam',     # RMS
-    dense_units=500,
-    activation='relu',      # elu, LeakyRelu
-    dropout=0.5,  # można ustawić inną wartość niż dropout_f
-    dropout_f=0.5,
-    batch_size=BATCH_SIZE,
-    epochs=EPOCHS,
+    filters=60,                      # Number of filters for the first layer
+    kernel_1=(5, 5),                 # Kernel size for the first set of Conv2D layers
+    kernel_2=(3, 3),                 # Kernel size for the second set of Conv2D layers
+    padding='valid',                 # Padding type
+    pooling=(2, 2),                  # Pooling size for MaxPooling2D
+    learning_rate=0.001,             # Learning rate for the Adam optimizer
+    wd=0.0,                          # Weight decay (optional, used for regularization)
+    learning_rate_schedule='RLR',    # Learning rate schedule: ReduceLROnPlateau (RLR), cyclic, step decay
+    optimizer='adam',                # Optimizer type (e.g., Adam, RMSProp)
+    dense_units=500,                 # Number of units in the dense layer
+    activation='relu',               # Activation function (e.g., relu, elu, LeakyReLU)
+    dropout=0.5,                     # Dropout rate for intermediate layers
+    dropout_f=0.5,                   # Dropout rate for fully connected layers (can differ from dropout)
+    batch_size=BATCH_SIZE,           # Batch size for training
+    epochs=EPOCHS                    # Number of epochs for training
 )
 
 
@@ -99,7 +86,6 @@ def create_model(config, input_shape, num_classes):
     # Build and compile the model
     model = Model(inputs=inp, outputs=out)
 
-    # na ten moment wsparcie tylko dla optimizer Adam
     if config['optimizer'] == 'adam':
         optimizer = Adam(learning_rate=config['learning_rate'])
     else:
