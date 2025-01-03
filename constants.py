@@ -29,7 +29,7 @@ TEST_DATA_DIR = os.path.join(_DATA_DIR, _TESTING_DATA_DIR, "kasia")
 TRAINING_DATA_SECONDARY_DIR = os.path.join(_DATA_DIR, _TESTING_DATA_DIR, "our")
 
 # Main model directory
-_MODEL_DIR = "model"
+_MODEL_DIR = "models"
 
 # Main saved model directory
 SAVED_MODEL_DIR = os.path.join(_MODEL_DIR)
