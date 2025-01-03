@@ -2,6 +2,10 @@ import os
 
 
 # --- DEBUGGING --- #
+from collections import namedtuple
+
+from class_to_number import class_names
+
 DEBUG = False
 
 # --- DATA DIRECTORIES --- #
@@ -31,6 +35,14 @@ IMG_SIZE = (128, 128)
 
 # Batch of images to be processes at the same time
 IMG_BATCH_SIZE = 32
+BATCH_SIZE = 32
+EPOCHS = 3
+
+ImageShape = namedtuple("ImageShape", ["height", "width", "channels"])
+
+INPUT_SHAPE = ImageShape(128, 128, 3)
+
+NUM_CLASSES = len(class_names)
 
 # TODO
 IMG_CHANNEL_NUMBER = 3
