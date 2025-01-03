@@ -13,10 +13,3 @@ def create_checkpoint_name() -> str:
     name = f"{current_datetime}"
 
     return name
-
-
-def create_model_name() -> str:
-    current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    name = f"{current_datetime}"
-
-    return name

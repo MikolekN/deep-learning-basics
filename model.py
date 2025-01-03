@@ -1,8 +1,8 @@
 import os
+from datetime import datetime
 
 import numpy as np
-from keras import Input
-from keras.models import Model
+from keras import Sequential
 from keras.src.applications.vgg16 import preprocess_input
 from keras.src.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.src.optimizers import Adam
@@ -11,80 +11,27 @@ from keras.src.utils import load_img, img_to_array
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
-from constants import SAVED_MODEL_DIR, EPOCHS, BATCH_SIZE
-from utils import create_run_name, create_checkpoint_name, create_model_name
-
-hyperparams = dict(
-    filters=60,                      # Number of filters for the first layer
-    kernel_1=(5, 5),                 # Kernel size for the first set of Conv2D layers
-    kernel_2=(3, 3),                 # Kernel size for the second set of Conv2D layers
-    padding='valid',                 # Padding type
-    pooling=(2, 2),                  # Pooling size for MaxPooling2D
-    learning_rate=0.001,             # Learning rate for the Adam optimizer
-    wd=0.0,                          # Weight decay (optional, used for regularization)
-    learning_rate_schedule='RLR',    # Learning rate schedule: ReduceLROnPlateau (RLR), cyclic, step decay
-    optimizer='adam',                # Optimizer type (e.g., Adam, RMSProp)
-    dense_units=500,                 # Number of units in the dense layer
-    activation='relu',               # Activation function (e.g., relu, elu, LeakyReLU)
-    dropout=0.5,                     # Dropout rate for intermediate layers
-    dropout_f=0.5,                   # Dropout rate for fully connected layers (can differ from dropout)
-    batch_size=BATCH_SIZE,           # Batch size for training
-    epochs=EPOCHS                    # Number of epochs for training
-)
+from constants import DEBUG, SAVED_MODEL_DIR
+from utils import create_checkpoint_name
 
 
-def _initialize():
-    wandb.init(project="polish-road-signs-classification", name=create_run_name(config=hyperparams), config=hyperparams)
-    return wandb.config
+def create_model(input_shape, num_classes, config=None):
+    config = config or wandb.config
 
+    model = Sequential([
+        Conv2D(config['filters'], config['kernel_1'], activation=config['activation'], padding=config['padding'], input_shape=input_shape),
+        Conv2D(config['filters'], config['kernel_1'], activation=config['activation'], padding=config['padding']),
+        MaxPooling2D(pool_size=config['pooling']),
 
-def _uninitialize():
-    wandb.finish(exit_code=0)
+        Conv2D(config['filters'] // 2, config['kernel_2'], activation=config['activation'], padding=config['padding']),
+        Conv2D(config['filters'] // 2, config['kernel_2'], activation=config['activation'], padding=config['padding']),
+        MaxPooling2D(pool_size=config['pooling']),
 
-
-# def create_model():
-#     model = Sequential([
-#         Conv2D(60, (5, 5), input_shape=(IMG_SIZE[0], IMG_SIZE[1], IMG_CHANNEL_NUMBER), activation='relu'),
-#         Conv2D(60, (5, 5), activation='relu'),
-#         MaxPooling2D(pool_size=(2, 2)),
-#
-#         Conv2D(30, (3, 3), activation='relu'),
-#         Conv2D(30, (3, 3), activation='relu'),
-#         MaxPooling2D(pool_size=(2, 2)),
-#
-#         Flatten(),
-#         Dense(500, activation='relu'),
-#         Dropout(0.5),
-#         Dense(len(class_names), activation='softmax')
-#     ])
-#     model.compile(Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-#     model.summary()
-#
-#     return model
-
-
-def create_model(config, input_shape, num_classes):
-    inp = Input(shape=input_shape)
-
-    # Layer-1: Conv2D-Conv2D-Pooling
-    x = Conv2D(filters=config['filters'], kernel_size=config['kernel_1'], activation=config['activation'], padding=config['padding'])(inp)
-    x = Conv2D(filters=config['filters'], kernel_size=config['kernel_1'], activation=config['activation'], padding=config['padding'])(x)
-    x = MaxPooling2D(pool_size=config['pooling'])(x)
-
-    # Layer-2: Conv2D-Conv2D-Pooling
-    x = Conv2D(filters=config['filters'] // 2, kernel_size=config['kernel_2'], activation=config['activation'], padding=config['padding'])(x)
-    x = Conv2D(filters=config['filters'] // 2, kernel_size=config['kernel_2'], activation=config['activation'], padding=config['padding'])(x)
-    x = MaxPooling2D(pool_size=config['pooling'])(x)
-
-    # Flatten and Fully Connected Head
-    x = Flatten()(x)
-    x = Dense(config['dense_units'], activation=config['activation'])(x)
-    x = Dropout(config['dropout_f'])(x)
-
-    out = Dense(num_classes, activation='softmax')(x)
-
-    # Build and compile the model
-    model = Model(inputs=inp, outputs=out)
+        Flatten(),
+        Dense(config['dense_units'], activation=config['activation']),
+        Dropout(config['dropout_f']),
+        Dense(num_classes, activation='softmax')
+    ])
 
     if config['optimizer'] == 'adam':
         optimizer = Adam(learning_rate=config['learning_rate'])
@@ -98,14 +45,13 @@ def create_model(config, input_shape, num_classes):
 
     return model
 
-
 def train_model(model, train_ds, val_ds):
     history = model.fit(
         x=train_ds,
         y=None,  # Targets are provided directly by the dataset
         epochs=wandb.config['epochs'],
         batch_size=wandb.config['batch_size'],
-        verbose=1,  # Show progress bar during training
+        verbose=DEBUG,  # Show progress bar during training
         validation_split=0.0,  # No splitting as validation data is separate
         validation_data=val_ds,  # Predefined validation dataset
         shuffle=True,  # Shuffle training data at the beginning of each epoch
@@ -128,22 +74,39 @@ def train_model(model, train_ds, val_ds):
     return history
 
 
+def create_model_name() -> str:
+    current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    return f"model_{current_datetime}.keras"
+
+
+def assemble_model_name(timestamp: datetime) -> str:
+    return f"model_{timestamp.strftime('%Y-%m-%d_%H-%M-%S')}.keras"
+
+
 def save_model(model):
-    model_save_path = os.path.join(SAVED_MODEL_DIR, f"model_{create_model_name()}.keras")
+    model_save_path = os.path.join(SAVED_MODEL_DIR, create_model_name())
 
     try:
-        os.makedirs(os.path.dirname(model_save_path), exist_ok=True)  # Ensure the directory exists
+        os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
         model.save(model_save_path)
         print(f"Model saved to {model_save_path}")
     except PermissionError:
-        print(
-            f"Permission denied when trying to save the model to {model_save_path}. Please check your write permissions.")
+        print(f"Permission denied when trying to save the model to {model_save_path}.")
     except Exception as e:
         print(f"An error occurred while saving the model: {e}")
 
 
-def load_model_from_file(model_file):
-    model_path = os.path.join(SAVED_MODEL_DIR, model_file)
+def load_model_from_name(model_name: str):
+    _load_model(model_name)
+
+
+def load_model_from_timestamp(timestamp: datetime):
+    model_name = assemble_model_name(timestamp)
+    _load_model(model_name)
+
+
+def _load_model(model_file_name: str):
+    model_path = os.path.join(SAVED_MODEL_DIR, model_file_name)
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"No saved model found at {model_path}")

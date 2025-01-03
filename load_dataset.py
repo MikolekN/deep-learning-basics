@@ -26,7 +26,7 @@ def _load_dataset_from_images():
         crop_to_aspect_ratio=False, # images will not be cropped
         pad_to_aspect_ratio=True, # images will be padded to keep aspect ratio
         data_format=None,
-        verbose=True # display number information on classes and number of files found
+        verbose=DEBUG # display number information on classes and number of files found
     )
 
     if DEBUG:
@@ -36,7 +36,7 @@ def _load_dataset_from_images():
 
             plt.figure(figsize=(10, 10))
             for i in range(9):
-                ax = plt.subplot(3, 3, i + 1)
+                plt.subplot(3, 3, i + 1)
                 plt.imshow(images[i].numpy().astype("uint8"))
                 plt.title(class_names[labels[i].numpy()])
                 plt.axis("off")
