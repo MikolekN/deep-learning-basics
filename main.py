@@ -11,7 +11,7 @@ from wandb_context import wandb_session
 
 enable_gpu()
 
-train_ds, val_ds = load_training_dataset()
+train_ds, val_ds = load_training_dataset(supplemented=True)
 
 with wandb_session(CONFIG) as wandb_config:
     model = create_model(INPUT_SHAPE, NUM_CLASSES)
