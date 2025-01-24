@@ -22,6 +22,9 @@ def _load_dataset_supplemented():
         image_size=IMG_SIZE,
         shuffle=True,
         seed=184474,
+        pad_to_aspect_ratio=True,
+        data_format=None,
+        verbose=DEBUG
     )
 
     supplement_ds = keras.utils.image_dataset_from_directory(
@@ -34,6 +37,9 @@ def _load_dataset_supplemented():
         image_size=IMG_SIZE,
         shuffle=True,
         seed=184474,
+        pad_to_aspect_ratio=True,
+        data_format=None,
+        verbose=DEBUG
     )
 
     combined_ds = primary_ds.concatenate(supplement_ds)
@@ -55,6 +61,9 @@ def _load_dataset():
         seed=184474,
         validation_split=0.2,
         subset="both",
+        pad_to_aspect_ratio=True,
+        data_format=None,
+        verbose=DEBUG
     )
 
     return train_ds, val_ds
