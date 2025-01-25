@@ -5,7 +5,7 @@ import numpy as np
 from keras import Sequential
 from keras.src.applications.vgg16 import preprocess_input
 from keras.src.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from keras.src.optimizers import Adam
+from keras.src.optimizers import Adam, SGD
 from keras.src.saving import load_model
 from keras.src.utils import load_img, img_to_array
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
@@ -35,6 +35,8 @@ def create_model(input_shape, num_classes, config=None):
 
     if config['optimizer'] == 'adam':
         optimizer = Adam(learning_rate=config['learning_rate'])
+    elif wandb.config['optimizer'] == 'sgd':
+        optimizer = SGD(learning_rate=wandb.config['learning_rate'])
     else:
         raise ValueError(f"Unknown optimizer: {config['optimizer']}")
 
