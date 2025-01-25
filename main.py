@@ -13,7 +13,7 @@ import wandb
 sweep_config = {
     'method': 'random',         # 'grid', 'hyperopt', 'bayesian'
     'metric': {
-        'name': 'loss',     # or 'val_accuracy'
+        'name': 'epoch/val_loss',     # or 'val_accuracy'
         'goal': 'minimize'      # 'maximize'
     },
     'parameters': {
