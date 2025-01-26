@@ -43,8 +43,8 @@ def _load_dataset_supplemented():
     )
 
     combined_ds = primary_ds.concatenate(supplement_ds)
-    val_ds = primary_ds.take(int(len(primary_ds) * 0.2))
-    train_ds = combined_ds.skip(int(len(primary_ds) * 0.2))
+    val_ds = combined_ds.take(int(len(combined_ds) * 0.2))
+    train_ds = combined_ds.skip(int(len(combined_ds) * 0.2))
 
     return train_ds, val_ds
 

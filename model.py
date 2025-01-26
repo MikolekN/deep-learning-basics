@@ -1,8 +1,8 @@
 import os
 from datetime import datetime
 
-import keras
 import numpy as np
+import tensorflow as tf
 from keras import Sequential
 from keras.src.applications.vgg16 import preprocess_input
 from keras.src.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
@@ -14,7 +14,6 @@ from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 import wandb
 from constants import DEBUG, SAVED_MODEL_DIR
 from utils import create_checkpoint_name
-import tensorflow as tf
 
 
 class SparsePrecision(tf.keras.metrics.Metric):
@@ -22,18 +21,14 @@ class SparsePrecision(tf.keras.metrics.Metric):
         super(SparsePrecision, self).__init__(name=name, **kwargs)
         self.precision = self.add_weight(name="precision", initializer="zeros")
 
-    def update_state(self, y_true, y_pred, sample_weight=None):
-        y_pred = tf.argmax(y_pred, axis=1)  # Convert to class indices
-        y_true = tf.cast(y_true, dtype=tf.int32)  # Ensure true labels are in int32 format
-        y_pred = tf.cast(y_pred, dtype=tf.int32)  # Ensure predicted labels are in int32 format
+    def update_state(self, y_true, y_pred):
+        y_pred = tf.argmax(y_pred, axis=1)
+        y_true = tf.cast(y_true, dtype=tf.int32)
+        y_pred = tf.cast(y_pred, dtype=tf.int32)
 
-        # True positives
         true_positives = tf.reduce_sum(tf.cast(tf.equal(y_true, y_pred), dtype=tf.float32))
-
-        # Predicted positives
         predicted_positives = tf.reduce_sum(tf.cast(y_pred, dtype=tf.float32))
 
-        # Precision
         precision = true_positives / (predicted_positives + tf.keras.backend.epsilon())
         self.precision.assign(precision)
 
@@ -49,18 +44,14 @@ class SparseRecall(tf.keras.metrics.Metric):
         super(SparseRecall, self).__init__(name=name, **kwargs)
         self.recall = self.add_weight(name="recall", initializer="zeros")
 
-    def update_state(self, y_true, y_pred, sample_weight=None):
-        y_pred = tf.argmax(y_pred, axis=1)  # Convert to class indices
-        y_true = tf.cast(y_true, dtype=tf.int32)  # Ensure true labels are in int32 format
-        y_pred = tf.cast(y_pred, dtype=tf.int32)  # Ensure predicted labels are in int32 format
+    def update_state(self, y_true, y_pred):
+        y_pred = tf.argmax(y_pred, axis=1)
+        y_true = tf.cast(y_true, dtype=tf.int32)
+        y_pred = tf.cast(y_pred, dtype=tf.int32)
 
-        # True positives
         true_positives = tf.reduce_sum(tf.cast(tf.equal(y_true, y_pred), dtype=tf.float32))
-
-        # Possible positives
         possible_positives = tf.reduce_sum(tf.cast(y_true, dtype=tf.float32))
 
-        # Recall
         recall = true_positives / (possible_positives + tf.keras.backend.epsilon())
         self.recall.assign(recall)
 
@@ -76,25 +67,18 @@ class SparseF1Score(tf.keras.metrics.Metric):
         super(SparseF1Score, self).__init__(name=name, **kwargs)
         self.f1 = self.add_weight(name="f1", initializer="zeros")
 
-    def update_state(self, y_true, y_pred, sample_weight=None):
-        y_pred = tf.argmax(y_pred, axis=1)  # Convert to class indices
+    def update_state(self, y_true, y_pred):
+        y_pred = tf.argmax(y_pred, axis=1)
         y_true = tf.cast(y_true, dtype=tf.int32)  # Ensure true labels are in int32 format
         y_pred = tf.cast(y_pred, dtype=tf.int32)  # Ensure predicted labels are in int32 format
 
-        # True positives
+
         true_positives = tf.reduce_sum(tf.cast(tf.equal(y_true, y_pred), dtype=tf.float32))
-
-        # Predicted positives
         predicted_positives = tf.reduce_sum(tf.cast(y_pred, dtype=tf.float32))
-
-        # Possible positives
         possible_positives = tf.reduce_sum(tf.cast(y_true, dtype=tf.float32))
 
-        # Precision and recall
         precision = true_positives / (predicted_positives + tf.keras.backend.epsilon())
         recall = true_positives / (possible_positives + tf.keras.backend.epsilon())
-
-        # F1 score
         f1 = 2 * (precision * recall) / (precision + recall + tf.keras.backend.epsilon())
         self.f1.assign(f1)
 
