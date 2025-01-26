@@ -9,6 +9,7 @@ from keras.src.optimizers import Adam, SGD
 from keras.src.saving import load_model
 from keras.src.utils import load_img, img_to_array
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+from wandb.integration.keras import WandbCallback
 
 import wandb
 from constants import DEBUG, SAVED_MODEL_DIR
@@ -73,6 +74,9 @@ def train_model(model, train_ds, val_ds):
                                  save_freq="epoch")
         ]
     )
+
+    val_loss, val_acc = model.evaluate(val_ds, verbose=DEBUG)
+    wandb.log({"val_loss": val_loss, "val_acc": val_acc})
 
     return history
 
