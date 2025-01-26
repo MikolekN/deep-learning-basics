@@ -75,7 +75,7 @@ SWEEP_CONFIG = {
             'values': ['adam', 'sgd']
         },
         'filters':  {
-            [32, 64, 128, 256, 512]
+            'values': [32, 64, 128, 256, 512]
         },
         'learning_rate': {
             'distribution': 'uniform',
