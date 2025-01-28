@@ -67,7 +67,7 @@ SWEEP_RUN_COUNT = 5
 SWEEP_CONFIG = {
     'method': 'random',         # 'grid', 'hyperopt', 'bayesian'
     'metric': {
-        'name': 'val_loss',     # or 'val_accuracy'
+        'name': 'epoch/val_loss',     # or 'val_accuracy'
         'goal': 'minimize'      # 'maximize'
     },
     'parameters': {
@@ -75,7 +75,7 @@ SWEEP_CONFIG = {
             'values': ['adam', 'sgd']
         },
         'filters':  {
-            'values': [32, 64, 128, 256, 512]
+            'values': [32, 64, 128, 256]
         },
         'learning_rate': {
             'distribution': 'uniform',
@@ -88,16 +88,12 @@ SWEEP_CONFIG = {
             'max': 0.5
         },
         'batch_size': {
-            'distribution': 'q_log_uniform_values',
-            'q': 8,
-            'min': 32,
-            'max': 128,
+            'values': [16, 32, 64, 128]
         },
         'epochs': {
-            'distribution': 'q_log_uniform_values',
-            'q': 6,
-            'min': 5,
-            'max': 20,
+            'distribution': 'int_uniform',
+            'min': 3,
+            'max': 10,
         }
     }
 }
