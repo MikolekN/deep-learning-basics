@@ -77,6 +77,9 @@ SWEEP_CONFIG = {
         'filters':  {
             'values': [32, 64, 128, 256]
         },
+        'dense_units': {
+            'values': [32, 64, 128, 256, 512]
+        },
         'learning_rate': {
             'distribution': 'uniform',
             'min': 0.0005,

@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import numpy as np
+import tensorflow as tf
 from keras import Sequential
 from keras.src.applications.vgg16 import preprocess_input
 from keras.src.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
@@ -50,6 +51,8 @@ def create_model(input_shape, num_classes, config=None):
 
 
 def train_model(model, train_ds, val_ds):
+    callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=2)
+
     history = model.fit(
         x=train_ds,
         y=None,  # Targets are provided directly by the dataset
@@ -71,7 +74,8 @@ def train_model(model, train_ds, val_ds):
         callbacks=[  # Add EarlyStopping in next project phase
             WandbMetricsLogger(log_freq=1),
             WandbModelCheckpoint(filepath=os.path.join("checkpoints", create_checkpoint_name(), "checkpoint_{epoch:02d}.keras"),
-                                 save_freq="epoch")
+                                 save_freq="epoch"),
+            callback
         ]
     )
 
