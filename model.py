@@ -17,6 +17,78 @@ from constants import DEBUG, SAVED_MODEL_DIR
 from utils import create_checkpoint_name
 
 
+class SparsePrecision(tf.keras.metrics.Metric):
+    def __init__(self, name="sparse_precision", **kwargs):
+        super(SparsePrecision, self).__init__(name=name, **kwargs)
+        self.precision = self.add_weight(name="precision", initializer="zeros")
+
+    def update_state(self, y_true, y_pred):
+        y_pred = tf.argmax(y_pred, axis=1)
+        y_true = tf.cast(y_true, dtype=tf.int32)
+        y_pred = tf.cast(y_pred, dtype=tf.int32)
+
+        true_positives = tf.reduce_sum(tf.cast(tf.equal(y_true, y_pred), dtype=tf.float32))
+        predicted_positives = tf.reduce_sum(tf.cast(y_pred, dtype=tf.float32))
+
+        precision = true_positives / (predicted_positives + tf.keras.backend.epsilon())
+        self.precision.assign(precision)
+
+    def result(self):
+        return self.precision
+
+    def reset_states(self):
+        self.precision.assign(0)
+
+
+class SparseRecall(tf.keras.metrics.Metric):
+    def __init__(self, name="sparse_recall", **kwargs):
+        super(SparseRecall, self).__init__(name=name, **kwargs)
+        self.recall = self.add_weight(name="recall", initializer="zeros")
+
+    def update_state(self, y_true, y_pred):
+        y_pred = tf.argmax(y_pred, axis=1)
+        y_true = tf.cast(y_true, dtype=tf.int32)
+        y_pred = tf.cast(y_pred, dtype=tf.int32)
+
+        true_positives = tf.reduce_sum(tf.cast(tf.equal(y_true, y_pred), dtype=tf.float32))
+        possible_positives = tf.reduce_sum(tf.cast(y_true, dtype=tf.float32))
+
+        recall = true_positives / (possible_positives + tf.keras.backend.epsilon())
+        self.recall.assign(recall)
+
+    def result(self):
+        return self.recall
+
+    def reset_states(self):
+        self.recall.assign(0)
+
+
+class SparseF1Score(tf.keras.metrics.Metric):
+    def __init__(self, name="sparse_f1_score", **kwargs):
+        super(SparseF1Score, self).__init__(name=name, **kwargs)
+        self.f1 = self.add_weight(name="f1", initializer="zeros")
+
+    def update_state(self, y_true, y_pred):
+        y_pred = tf.argmax(y_pred, axis=1)
+        y_true = tf.cast(y_true, dtype=tf.int32)  # Ensure true labels are in int32 format
+        y_pred = tf.cast(y_pred, dtype=tf.int32)  # Ensure predicted labels are in int32 format
+
+
+        true_positives = tf.reduce_sum(tf.cast(tf.equal(y_true, y_pred), dtype=tf.float32))
+        predicted_positives = tf.reduce_sum(tf.cast(y_pred, dtype=tf.float32))
+        possible_positives = tf.reduce_sum(tf.cast(y_true, dtype=tf.float32))
+
+        precision = true_positives / (predicted_positives + tf.keras.backend.epsilon())
+        recall = true_positives / (possible_positives + tf.keras.backend.epsilon())
+        f1 = 2 * (precision * recall) / (precision + recall + tf.keras.backend.epsilon())
+        self.f1.assign(f1)
+
+    def result(self):
+        return self.f1
+
+    def reset_states(self):
+        self.f1.assign(0)
+
 def create_model(input_shape, num_classes, config=None):
     config = config or wandb.config
 
@@ -42,9 +114,15 @@ def create_model(input_shape, num_classes, config=None):
     else:
         raise ValueError(f"Unknown optimizer: {config['optimizer']}")
 
-    model.compile(optimizer=optimizer,
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
+    model.compile(
+        optimizer=optimizer,
+        loss='sparse_categorical_crossentropy',
+        metrics=[
+            'accuracy',
+            SparsePrecision(name='precision'),
+            SparseRecall(name='recall'),
+            SparseF1Score(name='f1_score')
+        ])
     model.summary()
 
     return model

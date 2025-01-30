@@ -1,11 +1,9 @@
 import numpy as np
-
 from class_to_number import class_names
 from constants import INPUT_SHAPE, NUM_CLASSES, CONFIG, SWEEP_CONFIG, SWEEP_RUN_COUNT
 from gpu_setup import enable_gpu
-from load_dataset import load_training_dataset, load_testing_dataset
-from model import create_model, train_model, save_model, predict_image, load_model_from_name
-from report import generate_classification_report, calculate_class_accuracy
+from load_dataset import load_training_dataset
+from model import create_model, train_model, save_model
 from wandb_context import wandb_session
 import wandb
 
@@ -14,8 +12,7 @@ SWEEPS = True
 
 enable_gpu()
 
-train_ds, val_ds = load_training_dataset()
-
+train_ds, val_ds = load_training_dataset(supplemented=True)
 
 def run():
     with wandb_session(CONFIG) as wandb_config:
