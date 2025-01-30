@@ -22,7 +22,7 @@ class SparsePrecision(tf.keras.metrics.Metric):
         super(SparsePrecision, self).__init__(name=name, **kwargs)
         self.precision = self.add_weight(name="precision", initializer="zeros")
 
-    def update_state(self, y_true, y_pred):
+    def update_state(self, y_true, y_pred, sample_weight=None):
         y_pred = tf.argmax(y_pred, axis=1)
         y_true = tf.cast(y_true, dtype=tf.int32)
         y_pred = tf.cast(y_pred, dtype=tf.int32)
@@ -45,7 +45,7 @@ class SparseRecall(tf.keras.metrics.Metric):
         super(SparseRecall, self).__init__(name=name, **kwargs)
         self.recall = self.add_weight(name="recall", initializer="zeros")
 
-    def update_state(self, y_true, y_pred):
+    def update_state(self, y_true, y_pred, sample_weight=None):
         y_pred = tf.argmax(y_pred, axis=1)
         y_true = tf.cast(y_true, dtype=tf.int32)
         y_pred = tf.cast(y_pred, dtype=tf.int32)
@@ -68,7 +68,7 @@ class SparseF1Score(tf.keras.metrics.Metric):
         super(SparseF1Score, self).__init__(name=name, **kwargs)
         self.f1 = self.add_weight(name="f1", initializer="zeros")
 
-    def update_state(self, y_true, y_pred):
+    def update_state(self, y_true, y_pred, sample_weight=None):
         y_pred = tf.argmax(y_pred, axis=1)
         y_true = tf.cast(y_true, dtype=tf.int32)  # Ensure true labels are in int32 format
         y_pred = tf.cast(y_pred, dtype=tf.int32)  # Ensure predicted labels are in int32 format
@@ -157,8 +157,14 @@ def train_model(model, train_ds, val_ds):
         ]
     )
 
-    val_loss, val_acc = model.evaluate(val_ds, verbose=DEBUG)
-    wandb.log({"val_loss": val_loss, "val_acc": val_acc})
+    val_loss, val_acc, val_precision, val_recall, val_f1 = model.evaluate(val_ds, verbose=DEBUG)
+    wandb.log({
+        "val_loss": val_loss,
+        "val_acc": val_acc,
+        "val_precision": val_precision,
+        "val_recall": val_recall,
+        "val_f1": val_f1
+    })
 
     return history
 
