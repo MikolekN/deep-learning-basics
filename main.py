@@ -1,12 +1,9 @@
-import numpy as np
-from class_to_number import class_names
+import wandb
 from constants import INPUT_SHAPE, NUM_CLASSES, CONFIG, SWEEP_CONFIG, SWEEP_RUN_COUNT
 from gpu_setup import enable_gpu
 from load_dataset import load_training_dataset
 from model import create_model, train_model, save_model
 from wandb_context import wandb_session
-import wandb
-
 
 SWEEPS = True
 
