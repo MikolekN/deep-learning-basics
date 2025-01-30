@@ -1,14 +1,11 @@
 import os
 from datetime import datetime
 
-import numpy as np
 import tensorflow as tf
 from keras import Sequential
-from keras.src.applications.vgg16 import preprocess_input
 from keras.src.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.src.optimizers import Adam, SGD
 from keras.src.saving import load_model
-from keras.src.utils import load_img, img_to_array
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 from wandb.integration.keras import WandbCallback
 
@@ -210,15 +207,3 @@ def _load_model(model_file_name: str):
     print(f"Model loaded from: {model_path}")
 
     return model
-
-
-def predict_image(model, img_path):
-    img = load_img(img_path, target_size=(128, 128))
-
-    img_array = img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = preprocess_input(img_array)
-
-    prediction = model.predict(img_array)
-
-    return prediction
