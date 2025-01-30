@@ -6,10 +6,11 @@ import tensorflow as tf
 from keras import Sequential
 from keras.src.applications.vgg16 import preprocess_input
 from keras.src.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from keras.src.optimizers import Adam
+from keras.src.optimizers import Adam, SGD
 from keras.src.saving import load_model
 from keras.src.utils import load_img, img_to_array
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+from wandb.integration.keras import WandbCallback
 
 import wandb
 from constants import DEBUG, SAVED_MODEL_DIR
@@ -108,6 +109,8 @@ def create_model(input_shape, num_classes, config=None):
 
     if config['optimizer'] == 'adam':
         optimizer = Adam(learning_rate=config['learning_rate'])
+    elif wandb.config['optimizer'] == 'sgd':
+        optimizer = SGD(learning_rate=wandb.config['learning_rate'])
     else:
         raise ValueError(f"Unknown optimizer: {config['optimizer']}")
 
@@ -126,6 +129,8 @@ def create_model(input_shape, num_classes, config=None):
 
 
 def train_model(model, train_ds, val_ds):
+    callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=2)
+
     history = model.fit(
         x=train_ds,
         y=None,  # Targets are provided directly by the dataset
@@ -147,9 +152,13 @@ def train_model(model, train_ds, val_ds):
         callbacks=[  # Add EarlyStopping in next project phase
             WandbMetricsLogger(log_freq=1),
             WandbModelCheckpoint(filepath=os.path.join("checkpoints", create_checkpoint_name(), "checkpoint_{epoch:02d}.keras"),
-                                 save_freq="epoch")
+                                 save_freq="epoch"),
+            callback
         ]
     )
+
+    val_loss, val_acc = model.evaluate(val_ds, verbose=DEBUG)
+    wandb.log({"val_loss": val_loss, "val_acc": val_acc})
 
     return history
 

@@ -62,6 +62,45 @@ CONFIG = {
     'epochs': EPOCHS                    # Number of epochs for training
 }
 
+SWEEP_RUN_COUNT = 5
+
+SWEEP_CONFIG = {
+    'method': 'random',         # 'grid', 'hyperopt', 'bayesian'
+    'metric': {
+        'name': 'epoch/val_loss',     # or 'val_accuracy'
+        'goal': 'minimize'      # 'maximize'
+    },
+    'parameters': {
+        'optimizer': {
+            'values': ['adam', 'sgd']
+        },
+        'filters':  {
+            'values': [32, 64, 128, 256]
+        },
+        'dense_units': {
+            'values': [32, 64, 128, 256, 512]
+        },
+        'learning_rate': {
+            'distribution': 'uniform',
+            'min': 0.0005,
+            'max': 0.002
+        },
+        'dropout_f': {
+            'distribution': 'uniform',
+            'min': 0.1,
+            'max': 0.5
+        },
+        'batch_size': {
+            'values': [16, 32, 64, 128]
+        },
+        'epochs': {
+            'distribution': 'int_uniform',
+            'min': 3,
+            'max': 10,
+        }
+    }
+}
+
 # --- IMAGE PARAMETERS --- #
 
 # Resize training images to a uniform size
